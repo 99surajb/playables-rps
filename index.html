@@ -2,225 +2,352 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Stone Paper Scissors</title>
+<!-- Monetization & Ad SDK Abstraction Layer -->
+<script src="./monetization.js"></script>
+<!-- The Playables SDK (optional, guarded for web portals) -->
+<script src="https://www.youtube.com/game_api/v1"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
+       -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px));
     touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
   }
   .card {
-    background: #ffffff;
-    border-radius: 28px;
-    padding: 36px 30px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    max-width: 430px;
-    width: 100%;
-    text-align: center;
+    position: relative; background: #fff; border-radius: 28px;
+    padding: clamp(16px, 4vh, 32px) 24px; width: 100%; max-width: 430px; max-height: 100%;
+    text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,.35); overflow: hidden;
   }
-  h1 { color: #1f2937; margin-bottom: 6px; font-size: 30px; letter-spacing: -0.5px; }
-  p.subtitle { color: #6b7280; margin-bottom: 26px; font-size: 16px; }
-  .score {
-    display: flex;
-    justify-content: space-between;
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 24px;
-    color: #111827;
+  h1 { color: #1f2937; font-size: clamp(24px, 4.5vh, 30px); letter-spacing: -.5px; margin-bottom: 4px; }
+  .subtitle { color: #6b7280; font-size: 15px; margin-bottom: clamp(10px, 2.5vh, 20px); }
+  .score { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; color: #111827; margin-bottom: clamp(10px, 2.5vh, 18px); }
+  .pips { display: block; font-size: 12px; letter-spacing: 3px; color: #667eea; margin-top: 2px; height: 14px; }
+
+  .arena { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 10px; }
+  .hand {
+    width: 96px; height: 96px; border-radius: 24px; background: #f3f4f6;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 48px; line-height: 1;
   }
-  .choice-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 26px;
-  }
+  .hand small { font-size: 11px; font-weight: 700; color: #9ca3af; margin-top: 6px; letter-spacing: .5px; }
+  .hand.win { background: #d1fae5; } .hand.lose { background: #fee2e2; }
+  .hand.shake { animation: shake .12s linear infinite; }
+  @keyframes shake { 50% { transform: translateY(-5px) rotate(-4deg); } }
+  .vs { font-weight: 800; color: #9ca3af; }
+  .result-text { font-size: 26px; font-weight: 900; height: 34px; color: #374151; margin-bottom: 4px; }
+  .message { color: #4b5563; font-size: 16px; height: 22px; margin-bottom: clamp(10px, 2.5vh, 20px); }
+
+  .choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: clamp(10px, 2.5vh, 20px); }
   .choice-btn {
-    aspect-ratio: 1;
-    background: #f3f4f6;
-    border: 4px solid transparent;
-    border-radius: 24px;
-    font-size: 44px;
-    cursor: pointer;
-    transition: all 0.12s ease;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    aspect-ratio: 1; max-height: 15vh; width: 100%; justify-self: center;
+    background: #f3f4f6; border: 4px solid transparent; border-radius: 24px;
+    font-size: clamp(32px, 6.5vh, 44px); cursor: pointer; transition: transform .1s, background .1s;
   }
-  .choice-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
-  .choice-btn:active { transform: scale(0.9); }
-  .choice-btn.selected {
-    border-color: #667eea;
-    background: #eef2ff;
-  }
-  .result-area { margin: 26px 0; min-height: 150px; }
-  .result-text {
-    font-size: 26px;
-    font-weight: 900;
-    margin-bottom: 12px;
-    height: 36px;
-    color: #374151;
-  }
-  .computer-choice { font-size: 56px; margin-bottom: 14px; line-height: 1; }
-  .message { color: #4b5563; font-size: 16px; margin-bottom: 0; height: 22px; }
-  .reset-btn {
-    background: #667eea;
-    color: #ffffff;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    touch-action: manipulation;
-    transition: opacity 0.1s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .reset-btn:hover { opacity: 0.92; }
-  .reset-btn:active { transform: scale(0.98); }
-  .stats {
-    margin-top: 28px;
-    padding-top: 22px;
-    border-top: 1px solid #e5e7eb;
-    font-size: 14px;
-    color: #9ca3af;
-  }
+  .choice-btn:hover:not(:disabled) { background: #e5e7eb; }
+  .choice-btn:active:not(:disabled) { transform: scale(.9); }
+  .choice-btn:disabled { opacity: .5; cursor: default; }
+  .choice-btn.selected { border-color: #667eea; background: #eef2ff; }
+  .choice-btn:focus-visible, .btn:focus-visible { outline: 3px solid #764ba2; outline-offset: 2px; }
+
+  .btn { background: #667eea; color: #fff; border: none; padding: 14px 28px; border-radius: 16px;
+         font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; }
+  .btn:active { transform: scale(.98); }
+  .btn.ghost { background: #eef2ff; color: #4338ca; }
+  .stats { margin-top: clamp(10px, 2.5vh, 18px); padding-top: 12px; border-top: 1px solid #e5e7eb;
+           font-size: 14px; color: #6b7280; display: flex; justify-content: space-around; }
+
+  #matchOver { position: absolute; inset: 0; background: rgba(255,255,255,.96); z-index: 5;
+               display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  #matchOver.hidden { display: none; }
+  #matchOver .big { font-size: 64px; margin-bottom: 8px; }
+  #matchOver h2 { font-size: 28px; color: #1f2937; margin-bottom: 6px; }
+  #matchOver p { color: #6b7280; margin-bottom: 22px; }
+  @media (prefers-reduced-motion: reduce) { .hand.shake { animation: none; } }
 </style>
 </head>
 <body>
 <div class="card">
   <h1>Stone Paper Scissors</h1>
-  <p class="subtitle">Tap your move</p>
+  <p class="subtitle">First to 3 wins the match</p>
   <div class="score">
     <span>You: <span id="userScore">0</span></span>
     <span>Computer: <span id="compScore">0</span></span>
   </div>
+
+  <div class="arena">
+    <div class="hand" id="userHand"><span id="userEmoji">?</span><small>YOU</small></div>
+    <div class="vs">VS</div>
+    <div class="hand" id="compHand"><span id="compEmoji">?</span><small>COMPUTER</small></div>
+  </div>
+  <div class="result-text" id="resultText">Make your move</div>
+  <div class="message" id="message">&nbsp;</div>
+
   <div class="choice-grid">
-    <button class="choice-btn" data-choice="stone">🪨</button>
-    <button class="choice-btn" data-choice="paper">📄</button>
-    <button class="choice-btn" data-choice="scissor">✂️</button>
+    <button class="choice-btn" data-choice="stone" aria-label="Stone">🪨</button>
+    <button class="choice-btn" data-choice="paper" aria-label="Paper">📄</button>
+    <button class="choice-btn" data-choice="scissor" aria-label="Scissors">✂️</button>
   </div>
-  <div class="result-area">
-    <div class="result-text" id="resultText">Make your move</div>
-    <div class="computer-choice" id="computerChoice">?</div>
-    <div class="message" id="message">First to 3 wins!</div>
-  </div>
-  <button class="reset-btn" id="resetBtn">Reset Score</button>
+  <button class="btn ghost" id="resetBtn">New match</button>
+
   <div class="stats">
-    Rounds: <span id="rounds">0</span>
+    <span>Matches won: <b id="wonStat">0</b></span>
+    <span>Best streak: <b id="streakStat">0</b></span>
+  </div>
+
+  <div id="matchOver" class="hidden">
+    <div class="big" id="moEmoji">🎉</div>
+    <h2 id="moTitle">You won the match!</h2>
+    <p id="moScore">Final score 3 : 0</p>
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; margin: 0 auto;">
+      <button class="btn" id="bonusStreakBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff;">🎁 Double Score (Watch Ad)</button>
+      <button class="btn" id="againBtn">Play again</button>
+    </div>
   </div>
 </div>
 
 <script>
-const choices = ['stone', 'paper', 'scissor'];
-const emojiMap = { stone: '🪨', paper: '📄', scissor: '✂️' };
-let userScore = 0;
-let compScore = 0;
-let rounds = 0;
-let gameOver = false;
+(function () {
+  'use strict';
 
-const userScoreEl = document.getElementById('userScore');
-const compScoreEl = document.getElementById('compScore');
-const resultTextEl = document.getElementById('resultText');
-const computerChoiceEl = document.getElementById('computerChoice');
-const messageEl = document.getElementById('message');
-const roundsEl = document.getElementById('rounds');
-const choiceBtns = document.querySelectorAll('.choice-btn');
-const resetBtn = document.getElementById('resetBtn');
+  // ---------- Playables SDK (guarded so the file also runs as a normal page) ----------
+  const yt = window.ytgame || null;
+  const inYT = !!(yt && yt.IN_PLAYABLES_ENV);
+  function safe(fn) {
+    try { return fn(); }
+    catch (e) { console.warn(e); try { yt && yt.health && yt.health.logError(); } catch (_) {} }
+  }
 
-function getComputerChoice() {
-  return choices[Math.floor(Math.random() * choices.length)];
-}
-
-function determineWinner(user, comp) {
-  if (user === comp) return 'tie';
+  // ---------- Data ----------
+  const choices = ['stone', 'paper', 'scissor'];
+  const emoji = { stone: '🪨', paper: '📄', scissor: '✂️' };
   const beats = { stone: 'scissor', paper: 'stone', scissor: 'paper' };
-  return beats[user] === comp ? 'user' : 'computer';
-}
+  const WIN_AT = 3;
+  let userScore = 0, compScore = 0, busy = false, over = false;
+  let saved = { won: 0, streak: 0, best: 0 };   // streak = consecutive matches won
+  const timers = new Set();
 
-function updateUI() {
-  userScoreEl.textContent = userScore;
-  compScoreEl.textContent = compScore;
-  roundsEl.textContent = rounds;
-}
+  const $ = id => document.getElementById(id);
+  const btns = document.querySelectorAll('.choice-btn');
 
-function handleChoice(userChoice) {
-  if (gameOver) return;
+  // ---------- Audio (respects the YouTube mute setting) ----------
+  let audioOn = true, ac = null;
+  if (yt) safe(() => {
+    audioOn = yt.system.isAudioEnabled();
+    yt.system.onAudioEnabledChange(v => { audioOn = v; if (ac) (v ? ac.resume() : ac.suspend()); });
+    yt.system.onPause(() => { if (ac) ac.suspend(); });
+    yt.system.onResume(() => { if (ac && audioOn) ac.resume(); });
+  });
+  function tone(freq, start, dur, type, vol) {
+    if (!audioOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + start;
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur);
+    } catch (e) {}
+  }
+  const sfx = {
+    tap:  () => tone(420, 0, .06, 'square', .03),
+    win:  () => { tone(523, 0, .12, 'triangle', .07); tone(784, .1, .2, 'triangle', .07); },
+    lose: () => { tone(300, 0, .15, 'sawtooth', .05); tone(200, .12, .25, 'sawtooth', .05); },
+    tie:  () => tone(400, 0, .15, 'triangle', .05)
+  };
 
-  choiceBtns.forEach(btn => {
-    btn.classList.remove('selected');
-    if (btn.dataset.choice === userChoice) btn.classList.add('selected');
+  // ---------- Saved data ----------
+  function load() {
+    if (inYT) {
+      return Promise.resolve().then(() => yt.game.loadData()).then(d => {
+        if (d) { const o = JSON.parse(d); saved.won = o.won | 0; saved.streak = o.streak | 0; saved.best = o.best | 0; }
+      }).catch(() => {});
+    }
+    try { Object.assign(saved, JSON.parse(localStorage.getItem('sps_save') || '{}')); } catch (e) {}
+    return Promise.resolve();
+  }
+  function save() {
+    const s = JSON.stringify(saved);
+    if (inYT) safe(() => yt.game.saveData(s));
+    else { try { localStorage.setItem('sps_save', s); } catch (e) {} }
+  }
+
+  // ---------- UI helpers ----------
+  function later(fn, ms) {
+    const id = setTimeout(() => { timers.delete(id); fn(); }, ms);
+    timers.add(id);
+  }
+  function clearTimers() { timers.forEach(clearTimeout); timers.clear(); }
+  function pips(n) { return '●'.repeat(n) + '○'.repeat(WIN_AT - n); }
+  function render() {
+    $('userScore').innerHTML = userScore + '<span class="pips">' + pips(userScore) + '</span>';
+    $('compScore').innerHTML = compScore + '<span class="pips">' + pips(compScore) + '</span>';
+    $('wonStat').textContent = saved.won;
+    $('streakStat').textContent = saved.best;
+  }
+  function setBusy(b) { busy = b; btns.forEach(x => x.disabled = b || over); }
+
+  function newMatch() {
+    clearTimers();
+    userScore = compScore = 0; over = false;
+    btns.forEach(x => x.classList.remove('selected'));
+    $('userEmoji').textContent = '?'; $('compEmoji').textContent = '?';
+    $('userHand').className = 'hand'; $('compHand').className = 'hand';
+    $('resultText').textContent = 'Make your move'; $('resultText').style.color = '#374151';
+    $('message').innerHTML = '&nbsp;';
+    $('matchOver').classList.add('hidden');
+    setBusy(false); render();
+  }
+
+  // ---------- Round ----------
+  function play(user) {
+    if (busy || over) return;
+    setBusy(true); sfx.tap();
+    btns.forEach(x => x.classList.toggle('selected', x.dataset.choice === user));
+    $('userEmoji').textContent = emoji[user];
+    $('userHand').className = 'hand'; $('compHand').className = 'hand shake';
+    $('resultText').textContent = '…'; $('resultText').style.color = '#374151';
+    $('message').innerHTML = '&nbsp;';
+
+    // Computer "shuffles" briefly, then reveals
+    let i = 0;
+    const spin = setInterval(() => { $('compEmoji').textContent = emoji[choices[i++ % 3]]; }, 90);
+    timers.add(spin);
+    later(() => {
+      clearInterval(spin); timers.delete(spin);
+      reveal(user, choices[Math.floor(Math.random() * 3)]);
+    }, 550);
+  }
+
+  function reveal(user, comp) {
+    $('compEmoji').textContent = emoji[comp];
+    $('compHand').className = 'hand';
+    const r = $('resultText');
+    if (user === comp) {
+      r.textContent = "It's a tie!"; r.style.color = '#d97706';
+      $('message').textContent = 'Both chose ' + emoji[user]; sfx.tie();
+    } else if (beats[user] === comp) {
+      userScore++; r.textContent = 'You win!'; r.style.color = '#10b981';
+      $('userHand').classList.add('win'); $('compHand').classList.add('lose');
+      $('message').textContent = emoji[user] + ' beats ' + emoji[comp]; sfx.win();
+    } else {
+      compScore++; r.textContent = 'You lose!'; r.style.color = '#ef4444';
+      $('userHand').classList.add('lose'); $('compHand').classList.add('win');
+      $('message').textContent = emoji[comp] + ' beats ' + emoji[user]; sfx.lose();
+    }
+    render();
+    if (userScore >= WIN_AT || compScore >= WIN_AT) { over = true; later(endMatch, 800); }
+    setBusy(false);
+  }
+
+  function endMatch() {
+    const won = userScore > compScore;
+    if (won) {
+      saved.won++; saved.streak++; saved.best = Math.max(saved.best, saved.streak);
+      if (inYT) safe(() => yt.engagement.sendScore({ value: saved.won }));
+    } else {
+      saved.streak = 0;
+    }
+    save(); render();
+    $('moEmoji').textContent = won ? '🎉' : '😔';
+    $('moTitle').textContent = won ? 'You won the match!' : 'Computer won the match';
+    $('moScore').textContent = 'Final score ' + userScore + ' : ' + compScore;
+    const bonusStreakBtn = $('bonusStreakBtn');
+    if (bonusStreakBtn) {
+      bonusStreakBtn.style.display = won ? 'block' : 'none';
+    }
+    $('matchOver').classList.remove('hidden');
+    $('againBtn').focus();
+  }
+
+  // ---------- Events ----------
+  btns.forEach(b => b.addEventListener('click', () => play(b.dataset.choice)));
+  
+  $('resetBtn').addEventListener('click', () => {
+    if (window.AdManager && AdManager.adCount > 0) {
+      AdManager.showMidroll(() => newMatch());
+    } else {
+      newMatch();
+    }
   });
 
-  const compChoice = getComputerChoice();
-  computerChoiceEl.textContent = emojiMap[compChoice];
+  $('againBtn').addEventListener('click', () => {
+    if (window.AdManager) {
+      AdManager.showMidroll(() => newMatch());
+    } else {
+      newMatch();
+    }
+  });
 
-  const winner = determineWinner(userChoice, compChoice);
-  rounds++;
-
-  if (winner === 'user') {
-    userScore++;
-    resultTextEl.textContent = 'You Win!';
-    resultTextEl.style.color = '#10b981';
-    messageEl.textContent = `${emojiMap[userChoice]} beats ${emojiMap[compChoice]}`;
-  } else if (winner === 'computer') {
-    compScore++;
-    resultTextEl.textContent = 'You Lose!';
-    resultTextEl.style.color = '#ef4444';
-    messageEl.textContent = `${emojiMap[compChoice]} beats ${emojiMap[userChoice]}`;
-  } else {
-    resultTextEl.textContent = "It's a Tie!";
-    resultTextEl.style.color = '#d97706';
-    messageEl.textContent = `Both chose ${emojiMap[userChoice]}`;
+  const bonusStreakBtn = $('bonusStreakBtn');
+  if (bonusStreakBtn) {
+    bonusStreakBtn.addEventListener('click', () => {
+      if (window.AdManager) {
+        AdManager.showRewarded(() => {
+          saved.won += 2;
+          saved.streak += 1;
+          saved.best = Math.max(saved.best, saved.streak);
+          save();
+          render();
+          bonusStreakBtn.style.display = 'none';
+          $('moScore').textContent = 'Bonus applied! Final score ' + userScore + ' : ' + compScore;
+        }, () => {
+          alert('Rewarded ad could not be completed.');
+        });
+      }
+    });
   }
 
-  updateUI();
+  document.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === '1' || k === 's') play('stone');
+    else if (k === '2' || k === 'p') play('paper');
+    else if (k === '3' || k === 'c') play('scissor');
+  });
+  window.addEventListener('contextmenu', e => e.preventDefault());
+  window.addEventListener('error', () => { if (inYT) safe(() => yt.health.logError()); });
 
-  if (userScore >= 3 || compScore >= 3) {
-    gameOver = true;
-    setTimeout(() => {
-      const winnerMsg = userScore > compScore ? '🎉 You won the match!' : '😔 Computer won the match!';
-      messageEl.textContent = winnerMsg;
-      setTimeout(() => alert(winnerMsg + '\n\nFinal Score — You ' + userScore + ' : ' + compScore + ' Computer'), 100);
-    }, 500);
+  // Lifecycle listeners
+  function setAppMuted(mute) {
+    if (!ac) return;
+    if (mute) {
+      if (ac.state === 'running') ac.suspend();
+    } else {
+      if (ac.state === 'suspended' && audioOn) ac.resume();
+    }
   }
-}
 
-choiceBtns.forEach(btn => {
-  btn.addEventListener('click', () => handleChoice(btn.dataset.choice));
-});
+  document.addEventListener('visibilitychange', () => {
+    setAppMuted(document.hidden);
+  });
+  window.addEventListener('blur', () => setAppMuted(true));
+  window.addEventListener('focus', () => {
+    if (!document.hidden) setAppMuted(false);
+  });
 
-resetBtn.addEventListener('click', () => {
-  userScore = 0;
-  compScore = 0;
-  rounds = 0;
-  gameOver = false;
-  choiceBtns.forEach(btn => btn.classList.remove('selected'));
-  computerChoiceEl.textContent = '?';
-  resultTextEl.textContent = 'Make your move';
-  resultTextEl.style.color = '#374151';
-  messageEl.textContent = 'First to 3 wins!';
-  updateUI();
-});
+  if (window.AdManager) {
+    AdManager.onPauseGame(() => setAppMuted(true));
+    AdManager.onResumeGame(() => {
+      if (!document.hidden) setAppMuted(false);
+    });
+  }
 
-document.addEventListener('keydown', (e) => {
-  if (gameOver) return;
-  const key = e.key.toLowerCase();
-  if (key === '1' || key === 's') handleChoice('stone');
-  if (key === '2' || key === 'p') handleChoice('paper');
-  if (key === '3' || key === 'c') handleChoice('scissor');
-});
-
-updateUI();
+  // ---------- Boot ----------
+  if (window.AdManager) {
+    AdManager.init();
+  }
+  render();
+  if (inYT) safe(() => yt.game.firstFrameReady());   // first frame is on screen
+  load().then(() => {
+    render();
+    if (inYT) safe(() => yt.game.gameReady());       // saved data loaded, game is interactive
+  });
+})();
 </script>
 </body>
 </html>

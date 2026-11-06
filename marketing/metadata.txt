@@ -1,0 +1,58 @@
+================================================================================
+YOUTUBE SHORTS DISTRIBUTION & METADATA KIT: STONE PAPER SCISSORS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. HIGH-CTR VIDEO TITLES (Pick one per upload)
+--------------------------------------------------------------------------------
+- Can You Beat The AI in Rock Paper Scissors? (Impossible Challenge) 🤖 #shorts
+- The Secret Strategy To Win Rock Paper Scissors Every Time 🧠 #shorts
+- Match Point at 2-2 in Stone Paper Scissors (Pure Stress) 😭 #shorts
+- I Got A 15-Game Win Streak Against The Computer 🏆 #shorts
+- Why Is This Simple Game So Addictive?! 🪨📄✂️ #shorts
+
+--------------------------------------------------------------------------------
+2. VIDEO DESCRIPTION & TAGS
+--------------------------------------------------------------------------------
+Description:
+The classic schoolyard duel modernized for the web! Play Stone Paper Scissors in an intense 'First to 3' tournament against a calculating AI. Can you read the shuffle, adapt your strategy, and build an unbreakable win streak?
+
+🕹️ PLAY FREE IN YOUR BROWSER (Instant Load, Mobile & PC):
+https://99surajb.github.io/playables-rps/
+
+What's your longest win streak? Can you beat 5 matches in a row? Drop your score in the comments!
+
+#rockpaperscissors #rps #browsergames #html5games #casualgaming #gametheory #minigames #mobilegame #playables
+
+Tags:
+stone paper scissors, rock paper scissors game, html5 rps, free browser games, crazygames, poki games, casual puzzle game, schoolyard games, 2 player games, minigame online, unblocked games
+
+--------------------------------------------------------------------------------
+3. PINNED COMMENT TEMPLATE (Copy & Paste as First Comment)
+--------------------------------------------------------------------------------
+🎮 PLAY FREE IN YOUR BROWSER (NO DOWNLOAD):
+👉 https://99surajb.github.io/playables-rps/
+
+My record is a 7-match winning streak! Comment below if you can beat it! 🏆👇
+
+--------------------------------------------------------------------------------
+4. PORTAL SUBMISSION LISTING (CrazyGames & GameMonetize Format)
+--------------------------------------------------------------------------------
+Title: Stone Paper Scissors: Tournament Edition
+Category: Casual / Puzzle / Card & Board
+Orientation: Responsive (Clean mobile card layout)
+
+Short Synopsis (100 words):
+Experience the timeless classic reimagined with crisp modern aesthetics and dynamic feedback! Stone Paper Scissors: Tournament Edition pits you against a smart opponent in high-stakes "First to 3 Wins" duel matches. Features satisfying haptic-inspired audio synthesis, animated hand reveals, real-time match pip trackers, and persistent streak statistics that record your all-time best performance. Built with ultra-clean responsive HTML5 card architecture, this title runs flawlessly across smartphones, Chromebooks, and high-end PCs with zero loading times. Play a 30-second quick match or build the ultimate championship streak!
+
+Key Features:
+- Classic "First to 3" match format with real-time score indicators
+- Animated opponent shuffle reveals and dynamic result color feedback
+- Built-in sound synthesis with custom tones for wins, ties, and losses
+- Persistent local storage tracking total matches won and record win streaks
+- Keyboard shortcuts (1, 2, 3 or S, P, C) and touch button optimization
+
+Controls:
+- Mouse / Touch: Tap Stone (🪨), Paper (📄), or Scissors (✂️) buttons.
+- Keyboard: Press '1' or 'S' for Stone; '2' or 'P' for Paper; '3' or 'C' for Scissors.
+
